@@ -1,4 +1,4 @@
-import { producer } from '../config/kafka-config.js';
+import { producer } from '../config/kafka.js';
 import { decodeProgramID } from '../helper/hashids.js';
 
 export const logApps = async (req, res) => {

@@ -1,8 +1,8 @@
 import db from '../config/database.js';
-import { decodeSearchID, encodeOutputID } from '../helper/hashids.js';
+import { encodeOutputID, searchIdAcrossPlatforms } from '../helper/hashids.js';
 
 export const getProgramDetail = async (req, res) => {
-    const { id, name } = req.query;
+    const { id, name, group_id, type_id } = req.query;
 
     try {
         let query = db('programs')
@@ -18,18 +18,42 @@ export const getProgramDetail = async (req, res) => {
             );
 
         if (id) {
-            const result = decodeSearchID(id);
+            const result = searchIdAcrossPlatforms(id);
             if (!result) return res.status(400).json({ error: 'Invalid Encrypted ID Format' });
             query = query.where('programs.id', result.id);
-        } else if (name) {
+        }
+
+        if (name) {
             query = query.where('programs.program_name', 'like', `%${name}%`);
+        }
+
+        if (group_id) {
+            const decodedGroup = searchIdAcrossPlatforms(group_id); // Menggunakan utilitas yang sama
+            if (decodedGroup) query = query.where('programs.program_group_id', decodedGroup.id);
+        }
+
+        if (type_id) {
+            const decodedType = searchIdAcrossPlatforms(type_id);
+            if (decodedType) query = query.where('programs.program_type_id', decodedType.id);
         }
 
         const rawData = await query;
 
         const transformedData = rawData.map(item => {
-            let typeKey = item.program_type.toLowerCase();
-            if (typeKey.includes('mobile') || typeKey.includes('android')) typeKey = 'apps';
+            let typeKey;
+            const dbType = item.program_type.toLowerCase();
+
+            if (dbType === 'web') {
+                typeKey = 'web';
+            } else if (dbType === 'api') {
+                typeKey = 'api';
+            } else if (dbType === 'desktop') {
+                typeKey = 'desktop';
+            } else if (dbType === 'mobile android') {
+                typeKey = 'apps';
+            } else {
+                typeKey = 'program';
+            }
 
             return {
                 ids: encodeOutputID(typeKey, item.id_programs),

@@ -20,7 +20,6 @@ export const encodeOutputID = (category, id) => {
     return hashes[category].encode(id);
 };
 
-
 export const decodeProgramID = (category, hash) => {
     if (!hash || !hashes[category]) return null;
 

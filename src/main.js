@@ -1,5 +1,6 @@
-import app from '../app/app.js';
-import { connectKafka } from '../config/kafka.js';
+import 'dotenv/config';
+import app from './app/app.js';
+import { connectKafka } from './config/kafka.js';
 
 const PORT = process.env.PORT || 3000;
 
